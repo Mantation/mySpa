@@ -24,12 +24,21 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Days;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 
 import constants.constants;
 import io.eyec.bombo.semanepreschool.R;
@@ -52,7 +61,10 @@ public class mettingSpy {
     public static List profiles = new ArrayList<String>();
     public static List grades = new ArrayList<String>();
     public static final Handler handler = new Handler();
-    final static int delay = 500; //milliseconds
+    public static Runnable runnable;
+    final static int delay = 1000; //milliseconds
+    static int count;
+
 
     //Notifications
 
@@ -65,7 +77,7 @@ public class mettingSpy {
     }
 
     //get child ID number
-    public static void getSelfProfiles(){
+    public static void getSelfProfiles(final Activity activity){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection(constants.users)
                 .get()
@@ -73,20 +85,35 @@ public class mettingSpy {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
-                            int count = 0;
                             for (DocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
-                                int total = document.getData().size();
-                                for (int i = 0; i < total; i++) {
+                                int Total = document.getData().size();
+                                if( document.get("userid")!=null){
+                                    String Id = document.get("userid").toString();
+                                    if (Id.equalsIgnoreCase(accessKeys.getDefaultUserId())){
+                                        for (int i = 0; i < Total; i++) {
+                                            if(document.get("profile_"+i)!=null){
+                                                profiles.add(document.get("profile_"+i).toString());
+                                                break;
+                                            }
+
+                                        }
+                                    }
+                                    //profiles.add(document.get("profile_"+Total).toString());
+                                    //break;
+                                }
+                                /*for (int i = 0; i < Total; i++) {
                                     if(document.get("profile_"+i)!=null){
                                         profiles.add(document.get("profile_"+i).toString());
+                                        break;
                                     }
 
-                                }
+                                }*/
                             }
                             if(profiles.size()>0){
-                                getAllGrades(profiles);
+                                getAllGrades(activity,profiles);
                             }
+
                         }
 
                     }
@@ -94,7 +121,7 @@ public class mettingSpy {
     }
 
     //get grades for all IDs
-    public static void getSelfGrades(final List profiles){
+    public static void getSelfGrades(final Activity activity,final List profiles){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection(constants.children)
                 .get()
@@ -102,21 +129,22 @@ public class mettingSpy {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
-                            int count = 0;
+
+                            String Grades = "";
                             for (DocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
-                                if(document.get("grade")!=null && document.get("id")!=null){
+                                if (document.get("grade") != null && document.get("id") != null) {
                                     for (int i = 0; i < profiles.size(); i++) {
-                                        if(profiles.get(i).toString().equalsIgnoreCase(document.get("id").toString())){
-                                            if(grades.size()==0){
-                                                grades.add("grade "+document.get("grade").toString());
-                                            }else{
+                                        if (profiles.get(i).toString().equalsIgnoreCase(document.get("id").toString())) {
+                                            if (grades.size() == 0) {
+                                                grades.add("grade " + document.get("grade").toString());
+                                            } else {
                                                 for (int j = 0; j < grades.size(); j++) {
-                                                    if (grades.get(j).toString().equalsIgnoreCase(document.get("grade").toString())){
+                                                    if (grades.get(j).toString().equalsIgnoreCase(document.get("grade").toString())) {
                                                         break;
-                                                    }else{
-                                                        if((j+1)== grades.size()){
-                                                            grades.add("grade "+document.get("grade").toString());
+                                                    } else {
+                                                        if ((j + 1) == grades.size()) {
+                                                            grades.add("grade " + document.get("grade").toString());
                                                         }
                                                     }
                                                 }
@@ -124,11 +152,11 @@ public class mettingSpy {
 
                                         }
                                     }
+
                                 }
                             }
-                            getMeetings(grades);
+                            getMeetings(activity,grades);
                         }
-
                     }
                 });
     }
@@ -136,7 +164,7 @@ public class mettingSpy {
 
 
     //get all grades from firestore
-    private static  void getAllGrades(final List profiles){
+    private static  void getAllGrades(final Activity activity,final List profiles){
         final FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection(constants.children).addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -182,7 +210,7 @@ public class mettingSpy {
                             List<DocumentSnapshot> myListOfDocuments = task.getResult().getDocuments();
                             //Documents.addAll(myListOfDocuments);
                             //getCompanyInformation(activity);
-                            getSelfGrades(profiles);
+                            getSelfGrades(activity,profiles);
                         }
                     }
                 });
@@ -195,8 +223,9 @@ public class mettingSpy {
     public static List<String> time = new ArrayList<String>();
     public static List<String> Document = new ArrayList<String>();
     public static List<String> Parents = new ArrayList<String>();
+    public static boolean updateMeeting;
     //get the closest meeting
-    public static void getClosestMeeting(  final List Grades){
+    public static void getClosestMeeting(final Activity activity, final List Grades){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection(constants.meeting)
                 .get()
@@ -246,11 +275,40 @@ public class mettingSpy {
 
 
                             }
+                            final List<String> newDate = new ArrayList<String>();
                             if(!found){
-                                 List<String> newDate = new ArrayList<String>();
-                                List<String> counter = new ArrayList<String>();
+                                //List<String> counter = new ArrayList<String>();
+                                int maxdays = 32;
                                 for (int i = 0; i < date.size(); i++) {
-                                    int MinDay = 1000000;
+                                    try {
+                                        SimpleDateFormat dateformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.ENGLISH);
+                                        DateTimeZone Mzansi = DateTimeZone.forID("Africa/Johannesburg");
+                                        Date now = new Date();
+                                        String calledMeetingDay = date.get(i).replace("/","-") + " " + time.get(i)+":00";
+                                        //String MeetindDay = dateformat.format(calledMeetingDay);
+                                        //String MeetindDay = date.get(i).replace("/","-")+" "+time.get(i)+":00";
+                                        Date meetingDate = dateformat.parse(calledMeetingDay);
+                                        DateTime Today = new DateTime(now,Mzansi);
+                                        DateTime MeetingDay = new DateTime(meetingDate,Mzansi);
+                                        //int difference = Days.daysBetween(MeetingDay.withTimeAtStartOfDay(), Today.withTimeAtStartOfDay()).getDays();
+                                        //int difference = Days.daysBetween(MeetingDay.toLocalDate(), Today.toLocalDate()).getDays();
+                                        int difference = Days.daysBetween(Today.toLocalDate(), MeetingDay.toLocalDate()).getDays();
+                                        if ((difference < maxdays) && (difference >= 0)) {
+                                            for (int j = 0; j < Grades.size(); j++) {
+                                                if(attendants.get(i).equalsIgnoreCase("All")|| attendants.get(i).contains(Grades.get(j).toString()) || attendants.get(i).equalsIgnoreCase(accessKeys.getDefaultUserId())) {
+                                                    newDate.add(calledMeetingDay + "_" + i);
+                                                    //counter.add(String.valueOf(i));
+                                                    break;
+                                                }
+                                            }
+
+                                        }
+                                    } catch (ParseException e) {
+                                        e.printStackTrace();
+                                    }
+
+
+                                    /*int MinDay = 1000000;
                                     int MaxDay = 7000000;
                                     String []today = ToDate().split("/");
                                     int Today = Integer.parseInt(today[2]+""+today[1]+""+today[0]);
@@ -263,27 +321,91 @@ public class mettingSpy {
                                                 break;
                                             }
                                         }
-                                    }
+                                    }*/
 
                                 }
                                 if(newDate.size()>0){
+                                    updateMeeting = true;
                                     Collections.sort(newDate);
-                                    String []index = newDate.get(0).split("_");
-                                    home.getMeeting().setText("Topic : " + topic.get(Integer.parseInt(index[1])) + "\nVenue : " + venue.get(Integer.parseInt(index[1])) + "\n" + date.get(Integer.parseInt(index[1])) + " @ " + time.get(Integer.parseInt(index[1])));
-                                    home.getMeeting().setTextColor(Color.RED);
+                                    Random random = new Random();
+                                    int number = random.nextInt( newDate.size());
+                                    String []index = newDate.get(number).split("_");
+                                    if (home.getMeeting()!=null) {
+                                        home.getMeeting().setText("Topic : " + topic.get(Integer.parseInt(index[1])) + "\nVenue : " + venue.get(Integer.parseInt(index[1])) + "\n" + date.get(Integer.parseInt(index[1])) + " @ " + time.get(Integer.parseInt(index[1])));
+                                        home.getMeeting().setTextColor(Color.RED);
+                                    }
                                     home.setMeetingInfo("Topic : "+topic.get(Integer.parseInt(index[1]))+"\nVenue : "+venue.get(Integer.parseInt(index[1]))+"\n"+date.get(Integer.parseInt(index[1]))+" @ "+time.get(Integer.parseInt(index[1])));
-                                    checkParents(Document.get(Integer.parseInt(index[1])),topic.get(Integer.parseInt(index[1])),venue.get(Integer.parseInt(index[1])),date.get(Integer.parseInt(index[1])),time.get(Integer.parseInt(index[1])));
+                                    count=0;
+                                    handler.postDelayed(new Runnable(){
+                                        public void run(){
+                                            handler.postDelayed(this, delay);
+                                            if(count >= newDate.size()){
+                                                handler.removeCallbacks(runnable);
+                                                handler.removeCallbacksAndMessages(null);
+                                            }else {
+                                                runnable = this;
+                                                String []newIndex = newDate.get(count).split("_");
+                                                int index = Integer.parseInt(newIndex[1]);
+                                                if (updateMeeting) {
+                                                    updateMeeting = false;
+                                                    if (Parents.get(index) == null) {
+                                                        checkParents(activity, Document.get(index), topic.get(index), venue.get(index), date.get(index), time.get(index));
+                                                        count++;
+                                                    }else if(Parents.get(index) != null){
+                                                        if(!Parents.get(index).equalsIgnoreCase(accessKeys.getDefaultUserId())){
+                                                            checkParents(activity, Document.get(index), topic.get(index), venue.get(index), date.get(index), time.get(index));
+                                                            count++;
+                                                        }else{
+                                                            count++;
+                                                            updateMeeting = true;
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                        }
+                                    }, delay);
+                                    //checkParents(activity,Document.get(Integer.parseInt(index[1])),topic.get(Integer.parseInt(index[1])),venue.get(Integer.parseInt(index[1])),date.get(Integer.parseInt(index[1])),time.get(Integer.parseInt(index[1])));
                                     //Toast.makeText(activity, "date : "+ date.get(Integer.parseInt(index[1])) + "\nvanue : "+ venue.get(Integer.parseInt(index[1])), Toast.LENGTH_SHORT).show();
                                 }else{
-                                    home.getMeeting().setText("Not Scheduled");
+                                    if (home.getMeeting()!=null)
+                                        home.getMeeting().setText("Not Scheduled");
                                     home.setMeetingInfo("Not Scheduled");
                                     //Toast.makeText(activity, "No meetings forecasted", Toast.LENGTH_SHORT).show();
                                 }
 
                             }else{
-                                List<String> newDate = new ArrayList<String>();
-                                List<String> counter = new ArrayList<String>();
+                                //List<String> newDate = new ArrayList<String>();
+                                int maxdays = 32;
                                 for (int i = 0; i < date.size(); i++) {
+                                    try {
+                                        SimpleDateFormat dateformat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.ENGLISH);
+                                        DateTimeZone Mzansi = DateTimeZone.forID("Africa/Johannesburg");
+                                        Date now = new Date();
+                                        String calledMeetingDay = date.get(i).replace("/","-") + " " + time.get(i)+":00";
+                                        //String MeetindDay = dateformat.format(calledMeetingDay);
+                                        Date meetingDate = dateformat.parse(calledMeetingDay);
+                                        DateTime Today = new DateTime(now, Mzansi);
+                                        DateTime MeetingDay = new DateTime(meetingDate, Mzansi);
+                                        //int difference = Days.daysBetween(MeetingDay.withTimeAtStartOfDay(), Today.withTimeAtStartOfDay()).getDays();
+                                        //int difference = Days.daysBetween(MeetingDay.toLocalDate(), Today.toLocalDate()).getDays();
+                                        int difference = Days.daysBetween(Today.toLocalDate(), MeetingDay.toLocalDate()).getDays();
+                                        if ((difference < maxdays) && (difference >= 0)) {
+                                            for (int j = 0; j < Grades.size(); j++) {
+                                                if (attendants.get(i).equalsIgnoreCase("All") || attendants.get(i).contains(Grades.get(j).toString()) || attendants.get(i).equalsIgnoreCase(accessKeys.getDefaultUserId())) {
+                                                    newDate.add(calledMeetingDay + "_" + i);
+                                                    //counter.add(String.valueOf(i));
+                                                    break;
+                                                }
+                                            }
+
+                                        }
+                                    } catch (ParseException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                //List<String> counter = new ArrayList<String>();
+                                /*for (int i = 0; i < date.size(); i++) {
                                     int MinDay = 1000000;
                                     int MaxDay = 7000000;
                                     String []today = ToDate().split("/");
@@ -293,26 +415,62 @@ public class mettingSpy {
                                         for (int j = 0; j < Grades.size(); j++) {
                                             if(attendants.get(i).equalsIgnoreCase("All")|| attendants.get(i).contains(Grades.get(j).toString()) || attendants.get(i).equalsIgnoreCase(accessKeys.getDefaultUserId())) {
                                                 newDate.add(forecastDay + "_" + i);
-                                                counter.add(String.valueOf(i));
+                                                //counter.add(String.valueOf(i));
                                                 break;
                                             }
                                         }
                                     }
 
-                                }
+                                }*/
                                 if(newDate.size()>0){
+                                    updateMeeting = true;
                                     Collections.sort(newDate);
-                                    String []index = newDate.get(0).split("_");
-                                    home.getMeeting().setText("Topic : " + topic.get(Integer.parseInt(index[1])) + "\nVenue : " + venue.get(Integer.parseInt(index[1])) + "\n" + date.get(Integer.parseInt(index[1])) + " @ " + time.get(Integer.parseInt(index[1])));
-                                    home.getMeeting().setTextColor(Color.RED);
-                                    home.setMeetingInfo("Topic : "+topic.get(Integer.parseInt(index[1]))+"\nVenue : "+venue.get(Integer.parseInt(index[1]))+"\n"+date.get(Integer.parseInt(index[1]))+" @ "+time.get(Integer.parseInt(index[1])));
-                                    if(Parents.get(Integer.parseInt(index[1]))==null || !Parents.get(Integer.parseInt(index[1])).equalsIgnoreCase(accessKeys.getDefaultUserId())){
-                                        checkParents(Document.get(Integer.parseInt(index[1])),topic.get(Integer.parseInt(index[1])),venue.get(Integer.parseInt(index[1])),date.get(Integer.parseInt(index[1])),time.get(Integer.parseInt(index[1])));
+                                    Random random = new Random();
+                                    int number = random.nextInt( newDate.size());
+                                    String []index = newDate.get(number).split("_");
+                                    if (home.getMeeting()!=null){
+                                        home.getMeeting().setText("Topic : " + topic.get(Integer.parseInt(index[1])) + "\nVenue : " + venue.get(Integer.parseInt(index[1])) + "\n" + date.get(Integer.parseInt(index[1])) + " @ " + time.get(Integer.parseInt(index[1])));
+                                        home.getMeeting().setTextColor(Color.RED);
                                     }
+                                    home.setMeetingInfo("Topic : "+topic.get(Integer.parseInt(index[1]))+"\nVenue : "+venue.get(Integer.parseInt(index[1]))+"\n"+date.get(Integer.parseInt(index[1]))+" @ "+time.get(Integer.parseInt(index[1])));
+                                    count=0;
+                                    handler.postDelayed(new Runnable(){
+                                        public void run(){
+                                            handler.postDelayed(this, delay);
+                                            if(count >= newDate.size()){
+                                                handler.removeCallbacks(runnable);
+                                                handler.removeCallbacksAndMessages(null);
+                                            }else {
+                                                runnable = this;
+                                                String []newIndex = newDate.get(count).split("_");
+                                                int index = Integer.parseInt(newIndex[1]);
+                                                if (updateMeeting) {
+                                                    updateMeeting = false;
+                                                    if (Parents.get(index) == null) {
+                                                        checkParents(activity, Document.get(index), topic.get(index), venue.get(index), date.get(index), time.get(index));
+                                                        count++;
+                                                    }else if(Parents.get(index) != null){
+                                                        if(!Parents.get(index).equalsIgnoreCase(accessKeys.getDefaultUserId())){
+                                                            checkParents(activity, Document.get(index), topic.get(index), venue.get(index), date.get(index), time.get(index));
+                                                            count++;
+                                                        }else{
+                                                            count++;
+                                                            updateMeeting = true;
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                        }
+                                    }, delay);
+                                    //if(Parents.get(Integer.parseInt(index[1]))==null || !Parents.get(Integer.parseInt(index[1])).equalsIgnoreCase(accessKeys.getDefaultUserId())){
+                                    //    checkParents(activity,Document.get(Integer.parseInt(index[1])),topic.get(Integer.parseInt(index[1])),venue.get(Integer.parseInt(index[1])),date.get(Integer.parseInt(index[1])),time.get(Integer.parseInt(index[1])));
+                                    //}
                                     //checkParents(Document.get(Integer.parseInt(index[1])),topic.get(Integer.parseInt(index[1])),venue.get(Integer.parseInt(index[1])),date.get(Integer.parseInt(index[1])),time.get(Integer.parseInt(index[1])),textView);
                                     //Toast.makeText(activity, "date : "+ date.get(Integer.parseInt(index[1])) + "\nvanue : "+ venue.get(Integer.parseInt(index[1])), Toast.LENGTH_SHORT).show();
                                 }else{
-                                    home.getMeeting().setText("Not Scheduled");
+                                    if (home.getMeeting()!=null)
+                                        home.getMeeting().setText("Not Scheduled");
                                     home.setMeetingInfo("Not Scheduled");
                                     //Toast.makeText(activity, "No meetings forecasted", Toast.LENGTH_SHORT).show();
                                 }
@@ -323,7 +481,7 @@ public class mettingSpy {
     }
 
     //get all images from firestore
-    private static  void getMeetings( final List Grades){
+    private static  void getMeetings(final Activity activity, final List Grades){
         final FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection(constants.meeting).addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -369,7 +527,7 @@ public class mettingSpy {
                             List<DocumentSnapshot> myListOfDocuments = task.getResult().getDocuments();
                             //Documents.addAll(myListOfDocuments);
                             //getCompanyInformation(activity);
-                            getClosestMeeting(Grades);
+                            getClosestMeeting(activity, Grades);
                         }
                     }
                 });
@@ -377,7 +535,7 @@ public class mettingSpy {
 
     //getParents count
 
-    public static void checkParents(final String documnetRef,final String Agenda,final String Venue, final String dAte, final String Time){
+    public static void checkParents(final Activity activity,final String documnetRef,final String Agenda,final String Venue, final String dAte, final String Time){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection(constants.meeting)
                 .get()
@@ -385,26 +543,35 @@ public class mettingSpy {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
-                            boolean Notfound = false;
+                            boolean Notfound = true;
                             int countParents = 0;
+                            int count =0;
                             for (DocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 if (document.get("attendants") != null && document.get("venue") != null && document.get("topic") != null && document.get("time") != null && document.get("date") != null) {
                                     int total = document.getData().size();
-                                    for (int i = 0; i < total; i++) {
-                                        if (document.get("parent_" + i) != null) {
-                                            countParents = i;
-                                        }else{
-                                            countParents = i;
-                                            Notfound = true;
-                                            break;
+                                    while(count < total ){
+                                        if (document.get("parent_" + countParents) != null) {
+                                            if (accessKeys.getDefaultUserId().equalsIgnoreCase(document.get("parent_" + countParents).toString())) {
+                                                Notfound = false;
+                                                break;
+                                            } else {
+                                                countParents++;
+                                                Notfound = true;
+                                            }
                                         }
+                                        count++;
                                     }
                                 }
                             }
                             if(Notfound){
-                                updateProfiles(documnetRef,countParents,Agenda,Venue,dAte,Time);
-                            }/*else{
+                                updateProfiles(activity,documnetRef,countParents,Agenda,Venue,dAte,Time);
+                            }else{
+                                updateMeeting = true;
+                            }
+
+
+                            /*else{
 
                                 textView.setText("Topic : "+Agenda +"\nVenue : "+Venue+"\nDate : "+dAte+" @ "+Time);
                                 textView.setTextColor(Color.RED);
@@ -416,7 +583,7 @@ public class mettingSpy {
     }
 
     //update Parents count with my number adding + 1
-    private static void updateProfiles(final String documnetRef, final int number,final String Agenda,final String Venue, final String dAte, final String Time) {
+    private static void updateProfiles(final Activity activity,final String documnetRef, final int number,final String Agenda,final String Venue, final String dAte, final String Time) {
         try {
             final FirebaseFirestore db = FirebaseFirestore.getInstance();
             // Create a new user with a first and last name
@@ -430,7 +597,7 @@ public class mettingSpy {
                     if (task.isSuccessful()) {
                         Log.i(TAG, "profile successfully updated");
                         Loginfo("profile added successfully");
-                        sendApplicationMessage(Agenda,Venue,dAte,Time);
+                        sendApplicationMessage(activity,Agenda,Venue,dAte,Time);
 
                     }
                 }
@@ -452,7 +619,7 @@ public class mettingSpy {
     }
 
 
-    public static void sendApplicationMessage(final String Agenda,final String Venue, final String dAte, final String Time){
+    public static void sendApplicationMessage(final Activity activity, final String Agenda,final String Venue, final String dAte, final String Time){
         try {
             String defaultvalue = "n/a";
             final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -483,6 +650,12 @@ public class mettingSpy {
                                     if (task.isSuccessful()) {
                                         Log.i(TAG, "message successfully sent");
                                         Loginfo("message sent successfully");
+                                        //globalMethods.setReminder(activity,"Meeting",Agenda,dAte + " " + time);
+                                        main.permissionfor = constants.calendar;
+                                        main.reminderTitle = constants.AppName + " - Meeting";
+                                        main.reminderDescription = Agenda;
+                                        main.reminderDate = dAte + " " + Time+":00";
+                                        globalMethods.calendarPermissions(activity);
                                     }
                                 }
 

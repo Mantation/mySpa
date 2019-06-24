@@ -26,6 +26,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -328,6 +329,7 @@ static Activity activity;
             // Create a new user with a first and last name
             Map<String, Object> user = new HashMap<>();
             user.put("userid", accessKeys.getDefaultUserId());
+            user.put("token", accessKeys.getMessagingToken());
             user.put("date", ToDate());
             user.put("time", Time());
             user.put("document ref", defaultvalue);

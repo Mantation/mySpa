@@ -5,6 +5,7 @@ public class stepsInfo {
     private static String surname;
     private static String gender;
     private static String phone;
+    private static String messagingToken;
 
 
     public static String getName() {
@@ -37,5 +38,13 @@ public class stepsInfo {
 
     public static void setPhone(String phone) {
         stepsInfo.phone = phone;
+    }
+
+    public static String getMessagingToken() {
+        return messagingToken;
+    }
+
+    public static void setMessagingToken(String messagingToken) {
+        stepsInfo.messagingToken = messagingToken;
     }
 }

@@ -72,13 +72,14 @@ public class myApplications_ extends Application {
                                     if (user.equals(accessKeys.getDefaultUserId())) {
                                         Log.d(TAG, document.getId() + " => " + document.getData());
                                         if (document.get("child_name")!=null && document.get("child_surname")!=null && document.get("child_id")!=null && document.get("child_Image")!=null && document.get("proof Of Payment")!=null && document.get("status")!=null ){
-                                            if(!document.get("child_Image").toString().equalsIgnoreCase("null") && !document.get("child_Image").toString().equalsIgnoreCase("n/a")&& !document.get("proof Of Payment").toString().equalsIgnoreCase("null") && !document.get("proof Of Payment").toString().equalsIgnoreCase("n/a"))
+                                            if(!document.get("child_Image").toString().equalsIgnoreCase("null") && !document.get("child_Image").toString().equalsIgnoreCase("n/a")&& !document.get("proof Of Payment").toString().equalsIgnoreCase("null") && !document.get("proof Of Payment").toString().equalsIgnoreCase("n/a")) {
                                                 Profile.add(document.get("child_Image").toString());
                                                 Status.add(document.get("status").toString());
                                                 Name.add(document.get("child_name").toString());
                                                 Surname.add(document.get("child_surname").toString());
                                                 IdNumber.add(document.get("child_id").toString());
                                                 textView.setVisibility(View.GONE);
+                                            }
                                         }
                                     }
                                 }

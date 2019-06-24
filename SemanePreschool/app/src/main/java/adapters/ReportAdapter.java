@@ -25,6 +25,7 @@ public class ReportAdapter extends RecyclerView.Adapter<reportViewHolder>  {
     private String[] Subject;
     private String[] Date;
     private String[] Time;
+    private String[] Year;
     private String[] Term;
     private String[] Pupil;
     private String[] Total;
@@ -44,6 +45,14 @@ public class ReportAdapter extends RecyclerView.Adapter<reportViewHolder>  {
 
     public void setDate(String[] date) {
         Date = date;
+    }
+
+    public String[] getYear() {
+        return Year;
+    }
+
+    public void setYear(String[] year) {
+        Year = year;
     }
 
     public String[] getTime() {
@@ -99,9 +108,18 @@ public class ReportAdapter extends RecyclerView.Adapter<reportViewHolder>  {
     }
 
 
-
+    String year = "";
     @Override
     public void onBindViewHolder(@NonNull final reportViewHolder holder, int position) {
+        if (!year.equalsIgnoreCase(Year[position])){
+            year=Year[position];
+            holder.year.setText(Year[position]);
+            holder.year.setVisibility(View.VISIBLE);
+            holder.Myview.setVisibility(View.VISIBLE);
+        }else{
+            holder.Myview.setVisibility(View.GONE);
+            holder.year.setVisibility(View.GONE);
+        }
         holder.heading.setText(Term[position]);
         holder.date.setText(Date[position] + "\n" + Time[position]);
         String allsubs = Subject[position].substring(0,Subject[position].length()-1);
@@ -187,6 +205,8 @@ class reportViewHolder extends RecyclerView.ViewHolder {
     public TextView body;
     public ImageView status;
     public TextView date;
+    public TextView year;
+    public View Myview;
 
     public reportViewHolder(View view) {
         super(view);
@@ -195,5 +215,7 @@ class reportViewHolder extends RecyclerView.ViewHolder {
         body = view.findViewById(R.id.body);
         status = view.findViewById(R.id.status);
         date = (TextView)view.findViewById(R.id.dateTime);
+        year = (TextView)view.findViewById(R.id.year);
+        Myview = view.findViewById(R.id.view);
     }
 }

@@ -143,6 +143,7 @@ public class reports_ extends Application {
     public static List<String> pupil = new ArrayList<String>();
     public static List<String> total = new ArrayList<String>();
     public static List<String> docRef = new ArrayList<String>();
+    public static List<String> year = new ArrayList<String>();
     static ReportAdapter reportAdapter;
 
 
@@ -153,6 +154,7 @@ public class reports_ extends Application {
         clearList(term);
         clearList(pupil);
         clearList(total);
+        clearList(year);
         clearList(docRef);
         //gets all documents from firestore
         getFirestoreCategoryReports(activity,recyclerView,textView);
@@ -167,6 +169,7 @@ public class reports_ extends Application {
         clearList(term);
         clearList(pupil);
         clearList(total);
+        clearList(year);
         clearList(docRef);
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection(constants.report)
@@ -198,6 +201,7 @@ public class reports_ extends Application {
                                                     time.add(document.get("time").toString());
                                                     term.add(document.get("term").toString());
                                                     docRef.add(document.get("document ref").toString());
+                                                    year.add(document.get("date").toString().substring(0,4));
                                                     textView.setVisibility(View.GONE);
                                             }
                                         }
@@ -212,6 +216,7 @@ public class reports_ extends Application {
                                 String[] mytime = new String[time.size()];
                                 String[] myterm = new String[term.size()];
                                 String[] mydocRef = new String[docRef.size()];
+                                String[] myyear = new String[year.size()];
 
                                 for (int i = 0; i < pupil.size(); i++) {
                                     myPupil[i] = pupil.get(i);
@@ -221,6 +226,7 @@ public class reports_ extends Application {
                                     mytime[i] = time.get(i);
                                     myterm[i] = term.get(i);
                                     mydocRef[i] = docRef.get(i);
+                                    myyear[i] = year.get(i);
                                 }
 
                                 //sort ascending
@@ -229,6 +235,7 @@ public class reports_ extends Application {
                                 String tempsubject = "";
                                 String tempdate = "";
                                 String temptime = "";
+                                String tempyear = "";
                                 String tempterm= "";
                                 String tempDocument="";
                                 for (int i = 0; i < myPupil.length; i++) {
@@ -259,6 +266,9 @@ public class reports_ extends Application {
                                             mytime [j + 1]= mytime [i];
                                             mytime [i] = temptime;
 
+                                            tempyear = myyear [j + 1];
+                                            myyear [j + 1]= myyear [i];
+                                            myyear [i] = tempyear;
 
                                             tempterm = myterm [j + 1];
                                             myterm [j + 1]= myterm [i];
@@ -294,6 +304,9 @@ public class reports_ extends Application {
                                                     mytime [j + 1]= mytime [i];
                                                     mytime [i] = temptime;
 
+                                                    tempyear = myyear [j + 1];
+                                                    myyear [j + 1]= myyear [i];
+                                                    myyear [i] = tempyear;
 
                                                     tempterm = myterm [j + 1];
                                                     myterm [j + 1]= myterm [i];
@@ -318,6 +331,7 @@ public class reports_ extends Application {
                                 reportAdapter.setSubject(mySubject);
                                 reportAdapter.setDate(mydate);
                                 reportAdapter.setTime(mytime);
+                                reportAdapter.setYear(myyear);
                                 reportAdapter.setTerm(myterm);
                                 reportAdapter.setDocumentRef(mydocRef);
                                 recyclerView.setLayoutManager(new LinearLayoutManager(activity));

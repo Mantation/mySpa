@@ -13,6 +13,7 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.animation.Animation;
@@ -251,8 +252,96 @@ public class globalMethods {
 
     }
 
+    //Animations
+    //hide view from right to left
+    public static void hideView(final View view, final Activity activity) {
+        Animation animation = AnimationUtils.loadAnimation(activity, R.anim.slide_out_right);
+        //use this to make it longer:  animation.setDuration(1000);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
 
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
 
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                view.setVisibility(View.GONE);
+            }
+        });
+
+        view.startAnimation(animation);
+    }
+
+    //show view from left to right
+    public static void showView(final View view, final Activity activity) {
+        Animation animation = AnimationUtils.loadAnimation(activity, R.anim.slide_in_left);
+        //use this to make it longer:  animation.setDuration(1000);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                //view.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                view.setVisibility(View.VISIBLE);
+            }
+        });
+
+        view.startAnimation(animation);
+    }
+
+    //hide view from left to right
+    public static void rehideView(final View view, final Activity activity) {
+        Animation animation = AnimationUtils.loadAnimation(activity, R.anim.slide_out_left);
+        //use this to make it longer:  animation.setDuration(1000);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                view.setVisibility(View.GONE);
+            }
+        });
+
+        view.startAnimation(animation);
+    }
+
+    //show view from right to left
+    public static void reshowView(final View view, final Activity activity) {
+        Animation animation = AnimationUtils.loadAnimation(activity, R.anim.slide_in_right);
+        //use this to make it longer:  animation.setDuration(1000);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                //view.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                view.setVisibility(View.VISIBLE);
+            }
+        });
+
+        view.startAnimation(animation);
+    }
 
     public static void MonitorProgress(){
         handler.postDelayed(new Runnable(){
@@ -303,6 +392,12 @@ public class globalMethods {
             }
         }
         return results;
+    }
+
+    //Displays when the user choose no option
+    public static void ConfirmResolution(View view,String message) {
+        Snackbar.make(view, message, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
     }
 
 

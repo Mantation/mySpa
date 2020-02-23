@@ -2,15 +2,17 @@ package menuFragments;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -31,6 +33,13 @@ import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import constants.constants;
 import io.eyec.bombo.myspa.MainActivity;
@@ -57,6 +66,7 @@ public class main extends android.app.Fragment implements View.OnClickListener, 
     private double longitute;
     private double latitute;
     private boolean isLocationGrabbed;
+    private static boolean locationFound;
     ImageView SearchButton;
     public static AutoCompleteTextView Search;
     public static ArrayAdapter<String> adapter;
@@ -102,26 +112,48 @@ public class main extends android.app.Fragment implements View.OnClickListener, 
         recyclerView.setOnTouchListener(this);
         //set Date to autocomplete
         if(accessKeys.TownValues != null) {
-            adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.select_dialog_item, accessKeys.TownValues);
+            //newArrayList with spas, provinces, and towns
+            List<String> allItems = new ArrayList<String>();
+            Collections.addAll(allItems,accessKeys.spaValues);
+            //add town & spa values
+            //sort Spa values
+            Set<String> SpaList = new HashSet<>(allItems);
+            //set data to autocomplete
+            List<String> spaItems = new ArrayList<String>();
+            spaItems.addAll(SpaList);
+            Collections.addAll(spaItems,accessKeys.TownValues);
+            adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.select_dialog_item, spaItems);
             Search.setThreshold(6);
             Search.setAdapter(adapter);
         }
         //if Location is already found
         if(accessKeys.getLongitude()!= null && accessKeys.getLatitude()!=null){
             connectionHandler.external.spas_.getAllDocuments(getActivity(), recyclerView, progressBar,imageView);
+        }else{
+            checkLocation();
         }
         //handle selected items
         Search.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long rowId) {
                 String selection = (String) parent.getItemAtPosition(position);
                 System.out.println("Selection is " + selection);
-                boolean isProvince = false;
+                String category = "";
                 for (String str: accessKeys.ProvinceValues){
                     if(selection.equalsIgnoreCase(str))
-                        isProvince = true;
+                        category = "province";
                 }
-                spaSearch.setIsProvince(isProvince);
-                spaSearch.setProvince(selection);
+                if (category.equalsIgnoreCase("")) {
+                    for (String str : accessKeys.TownValues) {
+                        if (selection.equalsIgnoreCase(str))
+                            category = "town";
+                    }
+                }
+                if (category.equalsIgnoreCase("")) {
+                    category = "spa";
+                }
+
+                spaSearch.setCategory(category);
+                spaSearch.setOption(selection);
                 methods.globalMethods.loadFragmentWithTag(R.id.main, new spaSearch(), getActivity(),spaSearch.fragmentTag);
                 //connectionHandler.external.spasSearch_.getAllDocuments(getActivity(), recyclerView,isProvince,selection);
                 Search.getText().clear();
@@ -169,6 +201,37 @@ public class main extends android.app.Fragment implements View.OnClickListener, 
         setFragmentTag(fragmentTag);
         setExitApplication(true);
         return myview;
+    }
+
+    public void checkLocation(){
+        try{
+            if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                new AlertDialog.Builder(getActivity())
+                        .setMessage("Kindly enable your location")
+                        .setTitle("Location")
+                        .setPositiveButton("Enable", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                getActivity().startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                                locationFound = false;
+                                MonitorLocation(getActivity());
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                getActivity().finish();
+                                System.exit(0);
+                            }
+                        })
+                        .setCancelable(false)
+                        .show();
+            }
+        }catch (Exception e){
+            Log.d(TAG, "errror is ",e);
+            System.out.println(e);
+        }
+
     }
 
     public void getLocationPermission(){
@@ -312,8 +375,11 @@ public class main extends android.app.Fragment implements View.OnClickListener, 
     }
     @Override
     public void onDestroy() {
+        handler.removeCallbacks(myRunnable);
+        handler.removeCallbacksAndMessages(null);
+        handler.removeCallbacksAndMessages(myRunnable);
+        handler.removeMessages(0);
         super.onDestroy();
-        Log.d(TAG, "onDestroy: ");
     }
 
     @Override
@@ -331,5 +397,59 @@ public class main extends android.app.Fragment implements View.OnClickListener, 
         Search.setVisibility(View.GONE);
         SearchButton.setImageResource(R.drawable.ic_search_black_24dp);
         return false;
+    }
+
+    public static final Handler handler = new Handler();
+    final static int delay = 1000; //milliseconds
+    public static Runnable myRunnable;
+    public static void MonitorLocation(final Activity activity){
+        handler.postDelayed(myRunnable = new Runnable(){
+            public void run(){
+                if(!locationFound) {
+                    if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                        locationListener  = new LocationListener(){
+
+                            @Override
+                            public void onLocationChanged(Location location) {
+                                //if(!isLocationGrabbed) {
+                                boolean LocationEmpty = false;
+                                if(accessKeys.getLongitude()== null && accessKeys.getLatitude()==null) {
+                                    LocationEmpty = true;
+                                }
+                                System.out.println(location.getLatitude()+ ": "+location.getLongitude());
+                                accessKeys.setLongitude(String.valueOf(location.getLongitude()));
+                                accessKeys.setLatitude(String.valueOf(location.getLatitude()));
+                                if (LocationEmpty)
+                                    connectionHandler.external.spas_.getAllDocuments(activity, recyclerView, progressBar,imageView);
+                                //    isLocationGrabbed = true;
+                                //}
+                            }
+
+                            @Override
+                            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+                            }
+
+                            @Override
+                            public void onProviderEnabled(String provider) {
+
+                            }
+
+                            @Override
+                            public void onProviderDisabled(String provider) {
+
+                            }
+                        };
+                        locationFound = true;
+                    }
+                }else{
+                    handler.removeMessages(0);
+                    handler.removeCallbacks(myRunnable);
+                    handler.removeCallbacksAndMessages(null);
+                    handler.removeCallbacksAndMessages(myRunnable);
+                }
+                handler.postDelayed(this, delay);
+            }
+        }, delay);
     }
 }

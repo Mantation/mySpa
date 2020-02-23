@@ -271,14 +271,30 @@ public class spas_ extends Application {
                                 townCounter++;
                             }
                             //add province to properties
-                            accessKeys.ProvinceValues = new String[townList.size()];
+                            accessKeys.ProvinceValues = new String[provinceList.size()];
                             int provinceCounter = 0;
                             for (String str : provinceList) {
                                 accessKeys.ProvinceValues[provinceCounter] = str;
                                 provinceCounter++;
                             }
+                            //add all the spas
+                            accessKeys.spaValues = new String[MySpa.length];
+                            int spaCounter = 0;
+                            for (String str : MySpa) {
+                                accessKeys.spaValues[spaCounter] = str;
+                                spaCounter++;
+                            }
+                            //newArrayList with spas, provinces, and towns
+                            List<String> allItems = new ArrayList<String>();
+                            Collections.addAll(allItems,accessKeys.spaValues);
+                            //add town & spa values
+                            //sort Spa values
+                            Set<String> SpaList = new HashSet<>(allItems);
                             //set data to autocomplete
-                            main.adapter = new ArrayAdapter<String>(activity, android.R.layout.select_dialog_item, accessKeys.TownValues);
+                            List<String> spaItems = new ArrayList<String>();
+                            spaItems.addAll(SpaList);
+                            Collections.addAll(spaItems,accessKeys.TownValues);
+                            main.adapter = new ArrayAdapter<String>(activity, android.R.layout.select_dialog_item, spaItems);
                             main.Search.setThreshold(6);
                             main.Search.setAdapter(main.adapter);
                             //close progressBar

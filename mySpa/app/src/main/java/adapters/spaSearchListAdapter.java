@@ -71,8 +71,6 @@ public class spaSearchListAdapter extends RecyclerView.Adapter<mainSearchViewHol
     private String[] Lat;
     private String[] Town;
     private String[] Province;
-    private int MinHeight = 500;
-    private int MaxHeight = 800;
     RecyclerView mRecyclerView;
     final DecimalFormat f = new DecimalFormat("#.00");
 
@@ -255,11 +253,9 @@ public class spaSearchListAdapter extends RecyclerView.Adapter<mainSearchViewHol
         }
         if(Promo[position].equalsIgnoreCase("none")){
             holder.Display.setVisibility(View.GONE);
-            MinLayout(holder,MinHeight);
         }else{
             holder.Display.setVisibility(View.VISIBLE);
             Glide.with(activity).load(Promo[position]).into(holder.Promo);
-            MinLayout(holder,MinHeight);
         }
         if(!BusinessLong[position].equalsIgnoreCase("none") || !BusinessLat[position].equalsIgnoreCase("none")){
             Location locationA = new Location("point A");

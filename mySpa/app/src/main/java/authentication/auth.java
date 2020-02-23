@@ -177,7 +177,7 @@ public class auth {
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!input.getText().toString().isEmpty()&& input.getText().toString().length()>5){
+                if (!input.getText().toString().isEmpty()){
                     //ShowDialog(activity);
                     final String token = input.getText().toString();
                     PhoneAuthCredential credential = PhoneAuthProvider.getCredential(phoneVerificationId,token);

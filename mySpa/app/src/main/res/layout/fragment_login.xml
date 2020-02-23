@@ -11,6 +11,24 @@
         android:layout_gravity="top|center"
         android:gravity="center">
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/reg"
+            android:text="Register"
+            android:gravity="center"
+            android:textStyle="normal"
+            android:textSize="22dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:textColor="@color/colorblack"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/Name"
             android:layout_width="250dp"
@@ -20,6 +38,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
             android:hint="enter your name"
@@ -27,13 +46,16 @@
             android:maxLines="1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@+id/reg">
 
             <EditText
                 android:id="@+id/name"
                 android:layout_width="250dp"
                 android:layout_height="55dp"
                 android:hint="enter your name"
+                android:imeOptions="actionNext"
+                android:maxLines="1"
+                android:maxLength="30"
                 android:inputType="text"
                 android:singleLine="true" />
 
@@ -49,6 +71,8 @@
             android:layout_marginLeft="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:hint="enter your surname"
             android:inputType="text"
             android:maxLines="1"
@@ -61,6 +85,9 @@
                 android:layout_width="250dp"
                 android:layout_height="55dp"
                 android:hint="enter your surname"
+                android:imeOptions="actionNext"
+                android:maxLines="1"
+                android:maxLength="30"
                 android:inputType="text"
                 android:singleLine="true" />
 
@@ -70,7 +97,8 @@
             android:id="@+id/Gender"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginEnd="8dp"
@@ -103,6 +131,8 @@
             android:layout_marginLeft="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:hint="enter your email address"
             android:inputType="text"
             android:maxLines="1"
@@ -115,6 +145,9 @@
                 android:layout_width="250dp"
                 android:layout_height="55dp"
                 android:hint="enter your email address"
+                android:imeOptions="actionNext"
+                android:maxLines="1"
+                android:maxLength="50"
                 android:inputType="textEmailAddress"
                 android:singleLine="true" />
 
@@ -129,9 +162,13 @@
             android:layout_marginLeft="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:hint="enter your phone number"
             android:inputType="text"
+            android:imeOptions="actionNext"
             android:maxLines="1"
+            android:maxLength="15"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/Email">
@@ -156,9 +193,13 @@
             android:layout_marginLeft="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:hint="enter your alternative phone no."
             android:inputType="text"
+            android:imeOptions="actionNext"
             android:maxLines="1"
+            android:maxLength="15"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/Phone">

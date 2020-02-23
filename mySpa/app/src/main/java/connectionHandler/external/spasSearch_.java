@@ -50,7 +50,7 @@ public class spasSearch_ extends Application {
     static spaSearchListAdapter spaSearchlistAdapter;
 
 
-    public static void getAllDocuments(final Activity activity, final androidx.recyclerview.widget.RecyclerView recyclerView,final boolean isProvince, final String province) {
+    public static void getAllDocuments(final Activity activity, final androidx.recyclerview.widget.RecyclerView recyclerView,final String Category,final String Option) {
         clearList(spa);
         clearList(shortLoc);
         clearList(image);
@@ -65,12 +65,12 @@ public class spasSearch_ extends Application {
         clearList(Town);
         clearList(Province);
         //gets all documents from firestore
-        getFirestoreSpaDetails(activity,recyclerView,isProvince,province);
+        getFirestoreSpaDetails(activity,recyclerView,Category,Option);
         //getCommentIssues(activity, context, view, recyclerView); - should be like this
     }
 
     //get patients
-    public static void getSpaDetails(final Activity activity, final androidx.recyclerview.widget.RecyclerView recyclerView, final boolean isProvince, final String province){
+    public static void getSpaDetails(final Activity activity, final androidx.recyclerview.widget.RecyclerView recyclerView, final String Category,final String Option){
         clearList(spa);
         clearList(shortLoc);
         clearList(image);
@@ -98,7 +98,8 @@ public class spasSearch_ extends Application {
                                     if (hasBanner) {
                                         String myTown = document.get("town").toString();
                                         String myProvince = document.get("province").toString();
-                                        if (isProvince && myProvince.equalsIgnoreCase(province)) {
+                                        String mySpa = document.get("spa").toString();
+                                        if (Category.equalsIgnoreCase("province") && myProvince.equalsIgnoreCase(Option)) {
                                             String Spa = document.get("spa").toString();
                                             //String Loc  = document.get("location").toString();
                                             String Img = document.get("banner").toString();
@@ -147,7 +148,56 @@ public class spasSearch_ extends Application {
                                             Town.add(document.get("town").toString());
                                             Province.add(document.get("province").toString() + "~" + count);
                                             count++;
-                                        }else if(!isProvince && myTown.equalsIgnoreCase(province)){
+                                        }else if(Category.equalsIgnoreCase("town") && myTown.equalsIgnoreCase(Option)){
+                                            String Spa = document.get("spa").toString();
+                                            //String Loc  = document.get("location").toString();
+                                            String Img = document.get("banner").toString();
+                                            //String Phone  = document.get("phone").toString();
+                                            //String Addr  = document.get("address_physical").toString();
+                                            //String Email  = document.get("email").toString();
+                                            String Doc = document.get("document").toString();
+                                            if (document.get("promo") == null) {
+                                                Promo.add("none");
+                                            } else {
+                                                String promo = document.get("promo").toString();
+                                                Promo.add(promo);
+                                            }
+                                            if (document.get("location") == null) {
+                                                shortLoc.add("none");
+                                            } else {
+                                                String loc = document.get("location").toString();
+                                                shortLoc.add(loc);
+                                            }
+                                            if (document.get("phone") == null) {
+                                                phone.add("none");
+                                            } else {
+                                                String mobile = document.get("phone").toString();
+                                                phone.add(mobile);
+                                            }
+                                            if (document.get("GPS Latitude") == null && document.get("GPS Longitute") == null) {
+                                                BusinessLat.add("none");
+                                                BusinessLong.add("none");
+                                            } else {
+                                                String Latitude = document.get("GPS Latitude").toString();
+                                                String Longitute = document.get("GPS Longitute").toString();
+                                                BusinessLat.add(Latitude);
+                                                BusinessLong.add(Longitute);
+                                            }
+                                            if (document.get("email") == null) {
+                                                email.add("none");
+                                            } else {
+                                                String mail = document.get("email").toString();
+                                                email.add(mail);
+                                            }
+                                            spa.add(Spa);
+                                            image.add(Img);
+                                            spaId.add(Doc);
+                                            Longitude.add(accessKeys.getLongitude());
+                                            Latitude.add(accessKeys.getLatitude());
+                                            Town.add(document.get("town").toString());
+                                            Province.add(document.get("province").toString() + "~" + count);
+                                            count++;
+                                        }else if (mySpa.contains(Option)){
                                             String Spa = document.get("spa").toString();
                                             //String Loc  = document.get("location").toString();
                                             String Img = document.get("banner").toString();
@@ -297,7 +347,7 @@ public class spasSearch_ extends Application {
     }
 
     //get all documents from firestore
-    public static  void getFirestoreSpaDetails(final Activity activity, final androidx.recyclerview.widget.RecyclerView recyclerView,final boolean isProvince , final String province){
+    public static  void getFirestoreSpaDetails(final Activity activity, final androidx.recyclerview.widget.RecyclerView recyclerView,final String Category,final String Option){
         final FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection(constants.spa).addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -343,7 +393,7 @@ public class spasSearch_ extends Application {
                             List<DocumentSnapshot> myListOfDocuments = task.getResult().getDocuments();
                             //Documents.addAll(myListOfDocuments);
                             //getCompanyInformation(activity);
-                            getSpaDetails(activity,recyclerView,isProvince,province);
+                            getSpaDetails(activity,recyclerView,Category,Option);
                             //getIssues(activity,context, view, recyclerView); //ammended
                         }
                     }

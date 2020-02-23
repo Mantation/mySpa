@@ -11,6 +11,7 @@ public class accessKeys {
     private static String idType;
     public static String []TownValues;
     public static String []ProvinceValues;
+    public static String []spaValues;
     private static String defaultDocument;
     private static String Longitude;
     private static String Latitude;

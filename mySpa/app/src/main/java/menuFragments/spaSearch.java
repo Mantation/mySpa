@@ -14,7 +14,15 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import connectionHandler.external.spasSearch_;
 import io.eyec.bombo.myspa.R;
+import methods.globalMethods;
 import properties.accessKeys;
 
 import static io.eyec.bombo.myspa.MainActivity.setFragmentTag;
@@ -27,32 +35,31 @@ public class spaSearch extends android.app.Fragment implements View.OnClickListe
     public static RecyclerView recyclerView;
     View myview;
     ImageView SearchButton;
-    private static boolean isProvince;
-    private static String Province;
+    private static String Category;
+    private static String option;
     public static AutoCompleteTextView Search;
     public static ArrayAdapter<String> adapter;
     static String fragmentTag = "mainSearch";
 
-    public static boolean isIsProvince() {
-        return isProvince;
+    public static String getCategory() {
+        return Category;
     }
 
-    public static void setIsProvince(boolean isProvince) {
-        spaSearch.isProvince = isProvince;
+    public static void setCategory(String category) {
+        Category = category;
     }
 
-    public static String getProvince() {
-        return Province;
+    public static void setOption(String option) {
+        spaSearch.option = option;
     }
 
-    public static void setProvince(String province) {
-        Province = province;
+    public static String getOption() {
+        return option;
     }
 
     public spaSearch() {
         // Required empty public constructor
     }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -64,9 +71,19 @@ public class spaSearch extends android.app.Fragment implements View.OnClickListe
         Search.setVisibility(View.GONE);
         Search.setOnClickListener(this);
         SearchButton.setOnClickListener(this);
-        connectionHandler.external.spasSearch_.getAllDocuments(getActivity(), recyclerView,isIsProvince(),getProvince());
-        //set Date to autocomplete
-        adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.select_dialog_item, accessKeys.TownValues);
+        spasSearch_.getAllDocuments(getActivity(), recyclerView,getCategory(),getOption());
+        //newArrayList with spas, provinces, and towns
+        List<String> allItems = new ArrayList<String>();
+        Collections.addAll(allItems,accessKeys.spaValues);
+        //add town & spa values
+        //sort Spa values
+        Set<String> SpaList = new HashSet<>(allItems);
+        //set data to autocomplete
+        List<String> spaItems = new ArrayList<String>();
+        spaItems.addAll(SpaList);
+        Collections.addAll(spaItems,accessKeys.TownValues);
+        //set Data to autocomplete
+        adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.select_dialog_item, spaItems);
         Search.setThreshold(6);
         Search.setAdapter(adapter);
         //handle selected items
@@ -74,14 +91,24 @@ public class spaSearch extends android.app.Fragment implements View.OnClickListe
             public void onItemClick(AdapterView<?> parent, View view, int position, long rowId) {
                 String selection = (String) parent.getItemAtPosition(position);
                 System.out.println("Selection is " + selection);
-                boolean isProvince = false;
+                String category = "";
                 for (String str: accessKeys.ProvinceValues){
                     if(selection.equalsIgnoreCase(str))
-                        isProvince = true;
+                        category = "province";
                 }
-                spaSearch.setIsProvince(isProvince);
-                spaSearch.setProvince(selection);
-                methods.globalMethods.loadFragmentWithTag(R.id.main, new spaSearch(), getActivity(),fragmentTag);
+                if (category.equalsIgnoreCase("")) {
+                    for (String str : accessKeys.TownValues) {
+                        if (selection.equalsIgnoreCase(str))
+                            category = "town";
+                    }
+                }
+                if (category.equalsIgnoreCase("")) {
+                    category = "spa";
+                }
+
+                spaSearch.setCategory(category);
+                spaSearch.setOption(selection);
+                globalMethods.loadFragmentWithTag(R.id.main, new spaSearch(), getActivity(),fragmentTag);
                 //connectionHandler.external.spasSearch_.getAllDocuments(getActivity(), recyclerView,isProvince,selection);
                 Search.getText().clear();
                 //methods.globalMethods.loadFragments(R.id.main, new notes(),activity);
